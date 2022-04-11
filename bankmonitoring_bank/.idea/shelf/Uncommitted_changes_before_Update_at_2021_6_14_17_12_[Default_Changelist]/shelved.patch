@@ -1,0 +1,347 @@
+Index: monitor_service/src/test/java/com/engineering/MonitorServiceApplicationTests.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.engineering;\r\n\r\nimport com.alibaba.fastjson.JSON;\r\nimport com.alibaba.fastjson.JSONObject;\r\nimport com.engineering.common.lang.RandomID;\r\nimport com.engineering.pojo.*;\r\nimport org.apache.commons.lang3.RandomStringUtils;\r\nimport org.apache.tomcat.jni.Proc;\r\nimport org.junit.jupiter.api.Test;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.boot.test.context.SpringBootTest;\r\nimport org.springframework.data.redis.core.RedisTemplate;\r\nimport org.springframework.data.redis.core.ValueOperations;\r\n\r\n\r\nimport java.text.ParseException;\r\nimport java.text.SimpleDateFormat;\r\nimport java.util.ArrayList;\r\nimport java.util.Arrays;\r\nimport java.util.Date;\r\nimport java.util.List;\r\n\r\n@SpringBootTest\r\nclass MonitorServiceApplicationTests {\r\n\r\n    @Autowired\r\n    private RedisTemplate redisTemplate;\r\n\r\n    SimpleDateFormat sdf= new SimpleDateFormat(\"yyyy-MM-dd HH:mm:ss\");\r\n\r\n    @Test\r\n    void contextLoads() throws ParseException {\r\n        ValueOperations ops = redisTemplate.opsForValue();\r\n//        创建系统基本信息\r\n\r\n\r\n//      第一个时间：2021-05-18,第一个系统\r\n        Date date = sdf.parse(\"2021-05-18\");\r\n        SystemInfo system1 = new SystemInfo(new RandomID().getUUID(),\"核心业务系统\",\"5.2.1\",generateID(),generateID(),generateID(),generateID(),sdf.parse(\"2021-05-18 \"));\r\n        ops.set(\"System:\"+system1.getSysId()+\":\"+sdf.format(date),JSON.toJSONString(system1));\r\n        ops.set(\"System:\"+system1.getSysId(),JSON.toJSONString(system1));\r\n//\r\n\r\n        //创建数据库信息\r\n        DbInfo db11 = new DbInfo(system1.getDbIds().get(0),\"客户信息\",\"Redis\", system1.getSysId(), \"0001\",\"1\",sdf.parse(\"2009-05-18\"));\r\n        DbInfo db12 = new DbInfo(system1.getDbIds().get(1),\"存款业务\",\"MySQL\",system1.getSysId(),\"0002\",\"2\",sdf.parse(\"2009-05-18\"));\r\n//        //\r\n        ops.set(\"Database:\"+db11.getDbId()+\":\"+sdf.format(date),JSON.toJSONString(db11));\r\n        ops.set(\"Database:\"+db12.getDbId()+\":\"+sdf.format(date),JSON.toJSONString(db12));\r\n//\r\n//\r\n//       //创建主机并存入信息\r\n        HostInfo host11 = new HostInfo(\"21.19.216.112\",system1.getHostIds().get(0),\"主机1\",\"1\",new RandomID().getUUID(),new RandomID().getUUID(),new RandomID().getUUID(),\r\n                new RandomID().getUUID(),new RandomID().getUUID(),new RandomID().getUUID(),system1.getSysId(),sdf.parse(\"2009-05-21\"));\r\n        HostInfo host12 = new HostInfo(\"59.86.73.114\",system1.getHostIds().get(1),\"主机2\",\"1\",new RandomID().getUUID(),new RandomID().getUUID(),new RandomID().getUUID(),\r\n                new RandomID().getUUID(),new RandomID().getUUID(),new RandomID().getUUID(),system1.getSysId(),sdf.parse(\"2009-05-22\"));\r\n        ops.set(\"Host:\"+host11.getHostId()+\":\"+sdf.format(date), JSONObject.toJSONString(host11));\r\n        ops.set(\"Host:\"+host12.getHostId()+\":\"+sdf.format(date), JSONObject.toJSONString(host12));\r\n//\r\n//        //主机的相关类\r\n//        //负载\r\n        LoadState load11 = new LoadState(host11.getLoadId(),host11.getHostId(),\"负载20%\",\"负载50%\",\"负载75%\",sdf.parse(\"2021-05-18\"));//主机1\r\n        LoadState load12 = new LoadState(host12.getLoadId(),host12.getHostId(),\"负载75%\",\"负载40%\",\"负载45%\",sdf.parse(\"2021-05-18\"));//主机2\r\n        ops.set(\"LoadState:\"+load11.getLoadId()+\":\"+sdf.format(date),JSONObject.toJSONString(load11));\r\n        ops.set(\"LoadState:\"+load12.getLoadId()+\":\"+sdf.format(date),JSONObject.toJSONString(load12));\r\n//        CPU\r\n        CpuState cpuState11 = new CpuState(host11.getHostId(),host11.getCpuId(),\"2\",\"3.0\",\"25.6%\",\"43.1%\",\"12.2%\",sdf.parse(\"2021-05-18\"));\r\n        CpuState cpuState12 = new CpuState(host12.getHostId(),host12.getCpuId(),\"4\",\"6.0\",\"50.6%\",\"21.1%\",\"35.2%\",sdf.parse(\"2021-05-18\"));\r\n        ops.set(\"CpuState:\"+cpuState11.getCpuStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(cpuState11));\r\n        ops.set(\"CpuState:\"+cpuState12.getCpuStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(cpuState12));\r\n//\r\n////        MemState\r\n        MemState memState11 = new MemState(host11.getHostId(),host11.getMemId(),\"8192\",\"5120\",\"3072\",\"58.72\",sdf.parse(\"2021-05-18\"));\r\n        MemState memState12 = new MemState(host12.getHostId(),host12.getMemId(),\"16384\",\"8192\",\"8192\",\"50.00\",sdf.parse(\"2021-05-18\"));\r\n        ops.set(\"MemState:\"+memState11.getMemStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(memState11));\r\n        ops.set(\"MemState:\"+memState12.getMemStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(memState12));\r\n\r\n//        DeskState\r\n        DeskState deskState11 = new DeskState(host11.getHostId(),host11.getDeskId(),\"D\",\"256\",\"103.5\",\"152.5\",\"40.43\",sdf.parse(\"2021-05-18\"));\r\n        DeskState deskState12 = new DeskState(host12.getHostId(),host12.getDeskId(),\"D\",\"1024\",\"1003.5\",\"20.5\",\"98.00\",sdf.parse(\"2021-05-18\"));\r\n        ops.set(\"DeskState:\"+deskState11.getDeskStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(deskState11));\r\n        ops.set(\"DeskState:\"+deskState12.getDeskStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(deskState12));\r\n\r\n//        TCP\r\n        TcpState tcpState11 = new TcpState(host11.getHostId(),host11.getTcpId(),\"1\",\"0\",\"0\",sdf.parse(\"2021-05-18\"));\r\n        TcpState tcpState12 = new TcpState(host12.getHostId(),host12.getTcpId(),\"5\",\"1\",\"2\",sdf.parse(\"2021-05-18\"));\r\n        ops.set(\"TcpState:\"+tcpState11.getTcpStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(tcpState11));\r\n        ops.set(\"TcpState:\"+tcpState12.getTcpStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(tcpState12));\r\n\r\n//        Netio\r\n        NetioState netioState11 = new NetioState(host11.getHostId(),host11.getNetioId(),\"500\",\"421\",\"1126.5\",\"956.0\",\"1178\",\"906\",\"782\",sdf.parse(\"2021-05-18\"));\r\n        NetioState netioState12 = new NetioState(host12.getHostId(),host12.getNetioId(),\"700\",\"890\",\"3127.5\",\"905.0\",\"5263\",\"3756\",\"892\",sdf.parse(\"2021-05-18\"));\r\n        ops.set(\"NetioState:\"+netioState11.getNetioStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(netioState11));\r\n        ops.set(\"NetioState:\"+netioState12.getNetioStateId()+\":\"+sdf.format(date),JSONObject.toJSONString(netioState12));\r\n\r\n//        创建系统进程并存入系统\r\n        ProcessInfo process11 = new ProcessInfo(system1.getProcessIds().get(0),\"进程1\",\"正在进行\", \"2.7\",\"3.15\",\"50.6\",\"78.2\",system1.getSysId(), sdf.parse(\"2021-05-19\"));\r\n        ProcessInfo process12 = new ProcessInfo(system1.getProcessIds().get(1),\"进程2\",\"已结束\",\"0.0\",\"0.0\",\"0.0\",\"0.0\",system1.getSysId(),sdf.parse(\"2009-05-18\"));\r\n        ops.set(\"Process:\"+process11.getProcessId()+\":\"+sdf.format(date),JSONObject.toJSONString(process11));\r\n        ops.set(\"Process:\"+process12.getProcessId()+\":\"+sdf.format(date),JSONObject.toJSONString(process12));\r\n\r\n//        创建系统日志并存入\r\n        LogInfo log11 = new LogInfo(system1.getLogInfoIds().get(0),system1.getSysId(),\"删除一条客户信息\",\"0成功，1失败\",sdf.parse(\"2020-06-11\"));\r\n        LogInfo log12 = new LogInfo(system1.getLogInfoIds().get(1),system1.getSysId(),\"新增业务信息\",\"1成功，0失败\",sdf.parse(\"2020-06-12\"));\r\n        ops.set(\"LogInfo:\"+log11.getLogId()+\":\"+sdf.format(date),JSONObject.toJSONString(log11));\r\n        ops.set(\"LogInfo:\"+log12.getLogId()+\":\"+sdf.format(date),JSONObject.toJSONString(log12));\r\n\r\n//        创建剩余的系统，使用系统1的数据\r\n//        SystemInfo system1 = JSONObject.parseObject((String) ops.get(\"System:c06e1e72ba70422b93f6b8051749429e\"),SystemInfo.class);\r\n        SystemInfo system2 = new SystemInfo(new RandomID().getUUID(),\"国际清算系统\",\"4.9.8\", system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(), sdf.parse(\"2009-06-02\"));\r\n        SystemInfo system3 = new SystemInfo(new RandomID().getUUID(),\"信用卡系统\",\"4.2.3\",system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(),sdf.parse(\"2010-01-15\"));\r\n        SystemInfo system4 = new SystemInfo(new RandomID().getUUID(),\"债券交易系统\",\"3.9.2\",system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(),sdf.parse(\"2011-04-01\"));\r\n        SystemInfo system5 = new SystemInfo(new RandomID().getUUID(),\"信贷管理系统\",\"5.4.1\",system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(),sdf.parse(\"2010-01-06\"));\r\n        SystemInfo system6 = new SystemInfo(new RandomID().getUUID(),\"财务管理系统\",\"3.3.1\",system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(),sdf.parse(\"2009-06-18\"));\r\n        System.out.println(system1.getSysId());\r\n        System.out.println(system2.getSysId());\r\n        System.out.println(system3.getSysId());\r\n        System.out.println(system4.getSysId());\r\n        System.out.println(system5.getSysId());\r\n        System.out.println(system6.getSysId());\r\n//      录入系统信息\r\n        ops.set(\"System:\"+system2.getSysId(),JSON.toJSONString(system2));\r\n        ops.set(\"System:\"+system3.getSysId(),JSON.toJSONString(system3));\r\n        ops.set(\"System:\"+system4.getSysId(),JSON.toJSONString(system4));\r\n        ops.set(\"System:\"+system5.getSysId(),JSON.toJSONString(system5));\r\n        ops.set(\"System:\"+system6.getSysId(),JSON.toJSONString(system6));\r\n\r\n\r\n        ops.set(\"System:\"+system2.getSysId()+\":\"+sdf.format(date),JSON.toJSONString(system2));\r\n        ops.set(\"System:\"+system3.getSysId()+\":\"+sdf.format(date),JSON.toJSONString(system3));\r\n        ops.set(\"System:\"+system4.getSysId()+\":\"+sdf.format(date),JSON.toJSONString(system4));\r\n        ops.set(\"System:\"+system5.getSysId()+\":\"+sdf.format(date),JSON.toJSONString(system5));\r\n        ops.set(\"System:\"+system6.getSysId()+\":\"+sdf.format(date),JSON.toJSONString(system6));\r\n\r\n        ArrayList<String> sysIds = new ArrayList<String>();\r\n        sysIds.add(system1.getSysId());\r\n        sysIds.add(system2.getSysId());\r\n        sysIds.add(system3.getSysId());\r\n        sysIds.add(system4.getSysId());\r\n        sysIds.add(system5.getSysId());\r\n        sysIds.add(system6.getSysId());\r\n\r\n        ops.set(\"SystemIds\",JSON.toJSONString(sysIds));\r\n\r\n    }\r\n\r\n    ArrayList<String> generateID(){\r\n        ArrayList<String> list = new ArrayList<String>();\r\n        list.add(new RandomID().getUUID());\r\n        list.add(new RandomID().getUUID());\r\n        return list;\r\n    }\r\n\r\n\r\n    @Test\r\n    void test1() throws ParseException {\r\n        ValueOperations ops = redisTemplate.opsForValue();\r\n        ArrayList<SystemInfo> re = new ArrayList<>();\r\n        ArrayList<String> sysIds = JSONObject.parseObject((String) ops.get(\"SystemIds\"), ArrayList.class);\r\n        System.out.println(sysIds);\r\n        SystemInfo processInfo1 = JSONObject.parseObject((String) ops.get(\"System:\"+sysIds.get(0)), SystemInfo.class);\r\n        SystemInfo processInfo2 = JSONObject.parseObject((String) ops.get(\"System:\"+sysIds.get(1)), SystemInfo.class);\r\n        SystemInfo processInfo3 = JSONObject.parseObject((String) ops.get(\"System:\"+sysIds.get(2)), SystemInfo.class);\r\n        SystemInfo processInfo4 = JSONObject.parseObject((String) ops.get(\"System:\"+sysIds.get(3)), SystemInfo.class);\r\n        SystemInfo processInfo5 = JSONObject.parseObject((String) ops.get(\"System:\"+sysIds.get(4)), SystemInfo.class);\r\n        SystemInfo processInfo6 = JSONObject.parseObject((String) ops.get(\"System:\"+sysIds.get(5)), SystemInfo.class);\r\n        List<SystemInfo> sysList = Arrays.asList( processInfo1,processInfo2,processInfo3,processInfo4,processInfo5,processInfo6);\r\n        re.addAll(sysList);\r\n        System.out.println(re);\r\n\r\n    }\r\n\r\n\r\n    @Test\r\n    void test2() throws ParseException {\r\n        ArrayList<ProcessInfo> processList = new ArrayList<>();\r\n        ValueOperations ops = redisTemplate.opsForValue();\r\n        //先查对应id和创建时间的sys，找到对应模块id,然后根据id和创建时间查询，添加到结果中\r\n        SystemInfo system = JSONObject.parseObject((String) ops.get(\"System:fc6b194be8f54b48ad5f87255bb66472:2021-05-18\"),SystemInfo.class);\r\n        int count = 0;\r\n        for (String hostId:system.getProcessIds()) {\r\n            ProcessInfo host = JSONObject.parseObject((String) ops.get(\"Process:\"+hostId+\":2021-05-18\"),ProcessInfo.class);\r\n            processList.add(host);\r\n        }\r\n        for(ProcessInfo process:processList){\r\n            if (process.getProcessState().equals(\"正在进行\")){ count += 1; }\r\n        }\r\n       System.out.println(JSON.toJSONString(count)+\"/\"+JSON.toJSONString(processList.size()));\r\n\r\n    }\r\n\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/monitor_service/src/test/java/com/engineering/MonitorServiceApplicationTests.java b/monitor_service/src/test/java/com/engineering/MonitorServiceApplicationTests.java
+--- a/monitor_service/src/test/java/com/engineering/MonitorServiceApplicationTests.java	
++++ b/monitor_service/src/test/java/com/engineering/MonitorServiceApplicationTests.java	
+@@ -4,21 +4,17 @@
+ import com.alibaba.fastjson.JSONObject;
+ import com.engineering.common.lang.RandomID;
+ import com.engineering.pojo.*;
+-import org.apache.commons.lang3.RandomStringUtils;
+-import org.apache.tomcat.jni.Proc;
+ import org.junit.jupiter.api.Test;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.test.context.SpringBootTest;
+ import org.springframework.data.redis.core.RedisTemplate;
+ import org.springframework.data.redis.core.ValueOperations;
++import org.yaml.snakeyaml.parser.ParserException;
+ 
+ 
+ import java.text.ParseException;
+ import java.text.SimpleDateFormat;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Date;
+-import java.util.List;
++import java.util.*;
+ 
+ @SpringBootTest
+ class MonitorServiceApplicationTests {
+@@ -32,105 +28,166 @@
+     void contextLoads() throws ParseException {
+         ValueOperations ops = redisTemplate.opsForValue();
+ //        创建系统基本信息
+-
+-
++        Random r = new Random();
+ //      第一个时间：2021-05-18,第一个系统
+-        Date date = sdf.parse("2021-05-18");
+-        SystemInfo system1 = new SystemInfo(new RandomID().getUUID(),"核心业务系统","5.2.1",generateID(),generateID(),generateID(),generateID(),sdf.parse("2021-05-18 "));
+-        ops.set("System:"+system1.getSysId()+":"+sdf.format(date),JSON.toJSONString(system1));
++        Date date = sdf.parse("2021-05-18 00:00:00");
++        SystemInfo system1 = new SystemInfo(new RandomID().getUUID(), "核心业务系统", "5.2.1", generateID(), generateID(), generateID(), generateID(), date);
++        SystemInfo system2 = new SystemInfo(new RandomID().getUUID(),"国际清算系统","4.9.8",new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(), date);
++        SystemInfo system3 = new SystemInfo(new RandomID().getUUID(),"信用卡系统","4.2.3",new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(),date);
++        SystemInfo system4 = new SystemInfo(new RandomID().getUUID(),"债券交易系统","3.9.2",new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(),date);
++        SystemInfo system5 = new SystemInfo(new RandomID().getUUID(),"信贷管理系统","5.4.1",new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(),date);
++        SystemInfo system6 = new SystemInfo(new RandomID().getUUID(),"财务管理系统","3.3.1",new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>(),date);
++
+         ops.set("System:"+system1.getSysId(),JSON.toJSONString(system1));
+-//
++        ops.set("System:"+system2.getSysId(),JSON.toJSONString(system2));
++        ops.set("System:"+system3.getSysId(),JSON.toJSONString(system3));
++        ops.set("System:"+system4.getSysId(),JSON.toJSONString(system4));
++        ops.set("System:"+system5.getSysId(),JSON.toJSONString(system5));
++        ops.set("System:"+system6.getSysId(),JSON.toJSONString(system6));
++
++//     录入系统信息
++
++        for(int i=0;i<900;i++) {
+ 
+-        //创建数据库信息
+-        DbInfo db11 = new DbInfo(system1.getDbIds().get(0),"客户信息","Redis", system1.getSysId(), "0001","1",sdf.parse("2009-05-18"));
+-        DbInfo db12 = new DbInfo(system1.getDbIds().get(1),"存款业务","MySQL",system1.getSysId(),"0002","2",sdf.parse("2009-05-18"));
++            //创建数据库信息
++            DbInfo db11 = new DbInfo(system1.getDbIds().get(0), "客户信息", "Redis", system1.getSysId(), "6379", r.nextInt(2)+"", date);
++            DbInfo db12 = new DbInfo(system1.getDbIds().get(1), "存款业务", "MySQL", system1.getSysId(), "3306", r.nextInt(2)+"", date);
+ //        //
+-        ops.set("Database:"+db11.getDbId()+":"+sdf.format(date),JSON.toJSONString(db11));
+-        ops.set("Database:"+db12.getDbId()+":"+sdf.format(date),JSON.toJSONString(db12));
++
++            ops.set("Database:" + db11.getDbId() + ":" + sdf.format(date), JSON.toJSONString(db11));
++            ops.set("Database:" + db12.getDbId() + ":" + sdf.format(date), JSON.toJSONString(db12));
+ //
+ //
+ //       //创建主机并存入信息
+-        HostInfo host11 = new HostInfo("21.19.216.112",system1.getHostIds().get(0),"主机1","1",new RandomID().getUUID(),new RandomID().getUUID(),new RandomID().getUUID(),
+-                new RandomID().getUUID(),new RandomID().getUUID(),new RandomID().getUUID(),system1.getSysId(),sdf.parse("2009-05-21"));
+-        HostInfo host12 = new HostInfo("59.86.73.114",system1.getHostIds().get(1),"主机2","1",new RandomID().getUUID(),new RandomID().getUUID(),new RandomID().getUUID(),
+-                new RandomID().getUUID(),new RandomID().getUUID(),new RandomID().getUUID(),system1.getSysId(),sdf.parse("2009-05-22"));
+-        ops.set("Host:"+host11.getHostId()+":"+sdf.format(date), JSONObject.toJSONString(host11));
+-        ops.set("Host:"+host12.getHostId()+":"+sdf.format(date), JSONObject.toJSONString(host12));
++            HostInfo host11 = new HostInfo("21.19.216.112", system1.getHostIds().get(0), "主机1", r.nextInt(2)+"", new RandomID().getUUID(), new RandomID().getUUID(), new RandomID().getUUID(),
++                    new RandomID().getUUID(), new RandomID().getUUID(), new RandomID().getUUID(), system1.getSysId(), date);
++            HostInfo host12 = new HostInfo("59.86.73.114", system1.getHostIds().get(1), "主机2", r.nextInt(2)+"", new RandomID().getUUID(), new RandomID().getUUID(), new RandomID().getUUID(),
++                    new RandomID().getUUID(), new RandomID().getUUID(), new RandomID().getUUID(), system1.getSysId(), date);
++
++
++            ops.set("Host:" + host11.getHostId() + ":" + sdf.format(date), JSONObject.toJSONString(host11));
++            ops.set("Host:" + host12.getHostId() + ":" + sdf.format(date), JSONObject.toJSONString(host12));
+ //
+ //        //主机的相关类
+ //        //负载
+-        LoadState load11 = new LoadState(host11.getLoadId(),host11.getHostId(),"负载20%","负载50%","负载75%",sdf.parse("2021-05-18"));//主机1
+-        LoadState load12 = new LoadState(host12.getLoadId(),host12.getHostId(),"负载75%","负载40%","负载45%",sdf.parse("2021-05-18"));//主机2
+-        ops.set("LoadState:"+load11.getLoadId()+":"+sdf.format(date),JSONObject.toJSONString(load11));
+-        ops.set("LoadState:"+load12.getLoadId()+":"+sdf.format(date),JSONObject.toJSONString(load12));
++            LoadState load11 = new LoadState(host11.getLoadId(), host11.getHostId(), "负载20%", "负载50%", "负载75%", date);//主机1
++            LoadState load12 = new LoadState(host12.getLoadId(), host12.getHostId(), "负载75%", "负载40%", "负载45%", date);//主机2
++            ops.set("LoadState:" + load11.getLoadId() + ":" + sdf.format(date), JSONObject.toJSONString(load11));
++            ops.set("LoadState:" + load12.getLoadId() + ":" + sdf.format(date), JSONObject.toJSONString(load12));
++
+ //        CPU
+-        CpuState cpuState11 = new CpuState(host11.getHostId(),host11.getCpuId(),"2","3.0","25.6%","43.1%","12.2%",sdf.parse("2021-05-18"));
+-        CpuState cpuState12 = new CpuState(host12.getHostId(),host12.getCpuId(),"4","6.0","50.6%","21.1%","35.2%",sdf.parse("2021-05-18"));
+-        ops.set("CpuState:"+cpuState11.getCpuStateId()+":"+sdf.format(date),JSONObject.toJSONString(cpuState11));
+-        ops.set("CpuState:"+cpuState12.getCpuStateId()+":"+sdf.format(date),JSONObject.toJSONString(cpuState12));
++            CpuState cpuState11 = new CpuState(host11.getHostId(), host11.getCpuId(), "2", String.format("%.2f",r.nextDouble()*20), String.format("%.2f",r.nextDouble()*100), String.format("%.2f",r.nextDouble()*100), String.format("%.2f",r.nextDouble()*100), date);
++            CpuState cpuState12 = new CpuState(host12.getHostId(), host12.getCpuId(), "4", String.format("%.2f",r.nextDouble()*20), String.format("%.2f",r.nextDouble()*20), String.format("%.2f",r.nextDouble()*100),String.format("%.2f",r.nextDouble()*100), date);
++
++            ops.set("CpuState:" + cpuState11.getCpuStateId() + ":" + sdf.format(date), JSONObject.toJSONString(cpuState11));
++            ops.set("CpuState:" + cpuState12.getCpuStateId() + ":" + sdf.format(date), JSONObject.toJSONString(cpuState12));
+ //
+ ////        MemState
+-        MemState memState11 = new MemState(host11.getHostId(),host11.getMemId(),"8192","5120","3072","58.72",sdf.parse("2021-05-18"));
+-        MemState memState12 = new MemState(host12.getHostId(),host12.getMemId(),"16384","8192","8192","50.00",sdf.parse("2021-05-18"));
+-        ops.set("MemState:"+memState11.getMemStateId()+":"+sdf.format(date),JSONObject.toJSONString(memState11));
+-        ops.set("MemState:"+memState12.getMemStateId()+":"+sdf.format(date),JSONObject.toJSONString(memState12));
++            MemState memState11 = new MemState(host11.getHostId(), host11.getMemId(), "", "", "", "", date);
++            MemState memState12 = new MemState(host12.getHostId(), host12.getMemId(), "", "", "", "", date);
++            int total1 = (r.nextInt(10)+1)*1024;
++            int used1 = r.nextInt(total1);
++            int free1 =total1-used1;
++            double usedPer1 = used1 / total1;
++            memState11.setTotal(total1+"");
++            memState11.setUsed(used1+"");
++            memState11.setFree(free1+"");
++            memState11.setUsePer(String.format("%.2f",usedPer1));
++            int total2 = (r.nextInt(10)+1)*1024;
++            int used2 = r.nextInt(total1);
++            int free2 =total1-used1;
++            double usedPer2 = used2 / total2;
++            memState12.setTotal(total2+"");
++            memState12.setUsed(used2+"");
++            memState12.setFree(free2+"");
++            memState12.setUsePer(String.format("%.2f",usedPer2));
++            ops.set("MemState:" + memState11.getMemStateId() + ":" + sdf.format(date), JSONObject.toJSONString(memState11));
++            ops.set("MemState:" + memState12.getMemStateId() + ":" + sdf.format(date), JSONObject.toJSONString(memState12));
+ 
+ //        DeskState
+-        DeskState deskState11 = new DeskState(host11.getHostId(),host11.getDeskId(),"D","256","103.5","152.5","40.43",sdf.parse("2021-05-18"));
+-        DeskState deskState12 = new DeskState(host12.getHostId(),host12.getDeskId(),"D","1024","1003.5","20.5","98.00",sdf.parse("2021-05-18"));
+-        ops.set("DeskState:"+deskState11.getDeskStateId()+":"+sdf.format(date),JSONObject.toJSONString(deskState11));
+-        ops.set("DeskState:"+deskState12.getDeskStateId()+":"+sdf.format(date),JSONObject.toJSONString(deskState12));
++            DeskState deskState11 = new DeskState(host11.getHostId(), host11.getDeskId(), "D", "", "", "", "", date);
++            DeskState deskState12 = new DeskState(host12.getHostId(), host12.getDeskId(), "D", "", "", "", "", date);
++            int size1 = (r.nextInt(10)+1)*1024;
++            int use1 = r.nextInt(size1);
++            int avail1 =size1-use1;
++            double usedP1 = use1 / size1;
++            deskState11.setSize(size1+"");
++            deskState11.setUsed(use1+"");
++            deskState11.setAvail(avail1+"");
++            deskState11.setUsePer(String.format("%.2f",usedP1));
++            int size2 = (r.nextInt(10)+1)*1024;
++            int use2 = r.nextInt(size2);
++            int avail2 =size2-use2;
++            double usedP2 = use2 / size2;
++            deskState12.setSize(size2+"");
++            deskState12.setUsed(use2+"");
++            deskState12.setAvail(avail2+"");
++            deskState12.setUsePer(String.format("%.2f",usedP2));;
++            ops.set("DeskState:" + deskState11.getDeskStateId() + ":" + sdf.format(date), JSONObject.toJSONString(deskState11));
++            ops.set("DeskState:" + deskState12.getDeskStateId() + ":" + sdf.format(date), JSONObject.toJSONString(deskState12));
+ 
+ //        TCP
+-        TcpState tcpState11 = new TcpState(host11.getHostId(),host11.getTcpId(),"1","0","0",sdf.parse("2021-05-18"));
+-        TcpState tcpState12 = new TcpState(host12.getHostId(),host12.getTcpId(),"5","1","2",sdf.parse("2021-05-18"));
+-        ops.set("TcpState:"+tcpState11.getTcpStateId()+":"+sdf.format(date),JSONObject.toJSONString(tcpState11));
+-        ops.set("TcpState:"+tcpState12.getTcpStateId()+":"+sdf.format(date),JSONObject.toJSONString(tcpState12));
++            TcpState tcpState11 = new TcpState(host11.getHostId(), host11.getTcpId(), r.nextInt(100)+"", r.nextInt(100)+"", r.nextInt(100)+"", date);
++            TcpState tcpState12 = new TcpState(host12.getHostId(), host12.getTcpId(), r.nextInt(100)+"", r.nextInt(100)+"", r.nextInt(100)+"", date);
++            ops.set("TcpState:" + tcpState11.getTcpStateId() + ":" + sdf.format(date), JSONObject.toJSONString(tcpState11));
++            ops.set("TcpState:" + tcpState12.getTcpStateId() + ":" + sdf.format(date), JSONObject.toJSONString(tcpState12));
+ 
+ //        Netio
+-        NetioState netioState11 = new NetioState(host11.getHostId(),host11.getNetioId(),"500","421","1126.5","956.0","1178","906","782",sdf.parse("2021-05-18"));
+-        NetioState netioState12 = new NetioState(host12.getHostId(),host12.getNetioId(),"700","890","3127.5","905.0","5263","3756","892",sdf.parse("2021-05-18"));
+-        ops.set("NetioState:"+netioState11.getNetioStateId()+":"+sdf.format(date),JSONObject.toJSONString(netioState11));
+-        ops.set("NetioState:"+netioState12.getNetioStateId()+":"+sdf.format(date),JSONObject.toJSONString(netioState12));
++            NetioState netioState11 = new NetioState(host11.getHostId(), host11.getNetioId(), r.nextInt(1000)+"", r.nextInt(1000)+"", String.format("%.2f",r.nextDouble()*10000), String.format("%.2f",r.nextDouble()*10000), String.format("%.2f",r.nextDouble()*10000), r.nextInt(1000)+"", r.nextInt(1000)+"", date);
++            NetioState netioState12 = new NetioState(host12.getHostId(), host12.getNetioId(), r.nextInt(1000)+"", r.nextInt(1000)+"", String.format("%.2f",r.nextDouble()*10000), String.format("%.2f",r.nextDouble()*10000), String.format("%.2f",r.nextDouble()*10000), r.nextInt(1000)+"", r.nextInt(1000)+"", date);
++            ops.set("NetioState:" + netioState11.getNetioStateId() + ":" + sdf.format(date), JSONObject.toJSONString(netioState11));
++            ops.set("NetioState:" + netioState12.getNetioStateId() + ":" + sdf.format(date), JSONObject.toJSONString(netioState12));
+ 
+ //        创建系统进程并存入系统
+-        ProcessInfo process11 = new ProcessInfo(system1.getProcessIds().get(0),"进程1","正在进行", "2.7","3.15","50.6","78.2",system1.getSysId(), sdf.parse("2021-05-19"));
+-        ProcessInfo process12 = new ProcessInfo(system1.getProcessIds().get(1),"进程2","已结束","0.0","0.0","0.0","0.0",system1.getSysId(),sdf.parse("2009-05-18"));
+-        ops.set("Process:"+process11.getProcessId()+":"+sdf.format(date),JSONObject.toJSONString(process11));
+-        ops.set("Process:"+process12.getProcessId()+":"+sdf.format(date),JSONObject.toJSONString(process12));
++            ProcessInfo process11 = new ProcessInfo(system1.getProcessIds().get(0), "进程1", r.nextInt(2)+"", String.format("%.2f",r.nextDouble()*20), String.format("%.2f",r.nextDouble()*20), String.format("%.2f",r.nextDouble()*100), String.format("%.2f",r.nextDouble()*100), system1.getSysId(), date);
++            ProcessInfo process12 = new ProcessInfo(system1.getProcessIds().get(1), "进程2", r.nextInt(2)+"", String.format("%.2f",r.nextDouble()*20), String.format("%.2f",r.nextDouble()*20), String.format("%.2f",r.nextDouble()*100), String.format("%.2f",r.nextDouble()*100), system1.getSysId(), date);
++            ops.set("Process:" + process11.getProcessId() + ":" + sdf.format(date), JSONObject.toJSONString(process11));
++            ops.set("Process:" + process12.getProcessId() + ":" + sdf.format(date), JSONObject.toJSONString(process12));
+ 
+ //        创建系统日志并存入
+-        LogInfo log11 = new LogInfo(system1.getLogInfoIds().get(0),system1.getSysId(),"删除一条客户信息","0成功，1失败",sdf.parse("2020-06-11"));
+-        LogInfo log12 = new LogInfo(system1.getLogInfoIds().get(1),system1.getSysId(),"新增业务信息","1成功，0失败",sdf.parse("2020-06-12"));
+-        ops.set("LogInfo:"+log11.getLogId()+":"+sdf.format(date),JSONObject.toJSONString(log11));
+-        ops.set("LogInfo:"+log12.getLogId()+":"+sdf.format(date),JSONObject.toJSONString(log12));
++            LogInfo log11 = new LogInfo(system1.getLogInfoIds().get(0), system1.getSysId(), "安全审核记录", "0成功，1失败", date);
++            LogInfo log12 = new LogInfo(system1.getLogInfoIds().get(1), system1.getSysId(), "系统错误记录", "1成功，0失败", date);
++            ops.set("LogInfo:" + log11.getLogId() + ":" + sdf.format(date), JSONObject.toJSONString(log11));
++            ops.set("LogInfo:" + log12.getLogId() + ":" + sdf.format(date), JSONObject.toJSONString(log12));
+ 
+-//        创建剩余的系统，使用系统1的数据
+-//        SystemInfo system1 = JSONObject.parseObject((String) ops.get("System:c06e1e72ba70422b93f6b8051749429e"),SystemInfo.class);
+-        SystemInfo system2 = new SystemInfo(new RandomID().getUUID(),"国际清算系统","4.9.8", system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(), sdf.parse("2009-06-02"));
+-        SystemInfo system3 = new SystemInfo(new RandomID().getUUID(),"信用卡系统","4.2.3",system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(),sdf.parse("2010-01-15"));
+-        SystemInfo system4 = new SystemInfo(new RandomID().getUUID(),"债券交易系统","3.9.2",system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(),sdf.parse("2011-04-01"));
+-        SystemInfo system5 = new SystemInfo(new RandomID().getUUID(),"信贷管理系统","5.4.1",system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(),sdf.parse("2010-01-06"));
+-        SystemInfo system6 = new SystemInfo(new RandomID().getUUID(),"财务管理系统","3.3.1",system1.getDbIds(), system1.getHostIds(), system1.getProcessIds(), system1.getLogInfoIds(),sdf.parse("2009-06-18"));
+-        System.out.println(system1.getSysId());
+-        System.out.println(system2.getSysId());
+-        System.out.println(system3.getSysId());
+-        System.out.println(system4.getSysId());
+-        System.out.println(system5.getSysId());
+-        System.out.println(system6.getSysId());
+-//      录入系统信息
+-        ops.set("System:"+system2.getSysId(),JSON.toJSONString(system2));
+-        ops.set("System:"+system3.getSysId(),JSON.toJSONString(system3));
+-        ops.set("System:"+system4.getSysId(),JSON.toJSONString(system4));
+-        ops.set("System:"+system5.getSysId(),JSON.toJSONString(system5));
+-        ops.set("System:"+system6.getSysId(),JSON.toJSONString(system6));
++            system2.setHostIds(system1.getHostIds());
++            system2.setDbIds(system1.getDbIds());
++            system2.setLogInfoIds(system1.getLogInfoIds());
++            system2.setProcessIds(system1.getProcessIds());
++
++            system3.setHostIds(system1.getHostIds());
++            system3.setDbIds(system1.getDbIds());
++            system3.setLogInfoIds(system1.getLogInfoIds());
++            system3.setProcessIds(system1.getProcessIds());
++
++            system4.setHostIds(system1.getHostIds());
++            system4.setDbIds(system1.getDbIds());
++            system4.setLogInfoIds(system1.getLogInfoIds());
++            system4.setProcessIds(system1.getProcessIds());
++
++            system5.setHostIds(system1.getHostIds());
++            system5.setDbIds(system1.getDbIds());
++            system5.setLogInfoIds(system1.getLogInfoIds());
++            system5.setProcessIds(system1.getProcessIds());
+ 
++            system6.setHostIds(system1.getHostIds());
++            system6.setDbIds(system1.getDbIds());
++            system6.setLogInfoIds(system1.getLogInfoIds());
++            system6.setProcessIds(system1.getProcessIds());
+ 
+-        ops.set("System:"+system2.getSysId()+":"+sdf.format(date),JSON.toJSONString(system2));
+-        ops.set("System:"+system3.getSysId()+":"+sdf.format(date),JSON.toJSONString(system3));
+-        ops.set("System:"+system4.getSysId()+":"+sdf.format(date),JSON.toJSONString(system4));
+-        ops.set("System:"+system5.getSysId()+":"+sdf.format(date),JSON.toJSONString(system5));
+-        ops.set("System:"+system6.getSysId()+":"+sdf.format(date),JSON.toJSONString(system6));
++
++            ops.set("System:"+system1.getSysId()+":"+sdf.format(date),JSON.toJSONString(system1));
++            ops.set("System:"+system2.getSysId()+":"+sdf.format(date),JSON.toJSONString(system2));
++            ops.set("System:"+system3.getSysId()+":"+sdf.format(date),JSON.toJSONString(system3));
++            ops.set("System:"+system4.getSysId()+":"+sdf.format(date),JSON.toJSONString(system4));
++            ops.set("System:"+system5.getSysId()+":"+sdf.format(date),JSON.toJSONString(system5));
++            ops.set("System:"+system6.getSysId()+":"+sdf.format(date),JSON.toJSONString(system6));
++            date.setTime(date.getTime() + 1000);
++        }
++
++//        创建剩余的系统，使用系统1的数据
++//        SystemInfo system1 = JSONObject.parseObject((String) ops.get("System:c06e1e72ba70422b93f6b8051749429e"),SystemInfo.class);
++
+ 
+         ArrayList<String> sysIds = new ArrayList<String>();
+         sysIds.add(system1.getSysId());
+@@ -141,6 +198,7 @@
+         sysIds.add(system6.getSysId());
+ 
+         ops.set("SystemIds",JSON.toJSONString(sysIds));
++        System.out.println(date);
+ 
+     }
+ 
+@@ -173,19 +231,55 @@
+ 
+     @Test
+     void test2() throws ParseException {
+-        ArrayList<ProcessInfo> processList = new ArrayList<>();
++
+         ValueOperations ops = redisTemplate.opsForValue();
+         //先查对应id和创建时间的sys，找到对应模块id,然后根据id和创建时间查询，添加到结果中
+-        SystemInfo system = JSONObject.parseObject((String) ops.get("System:fc6b194be8f54b48ad5f87255bb66472:2021-05-18"),SystemInfo.class);
+-        int count = 0;
+-        for (String hostId:system.getProcessIds()) {
+-            ProcessInfo host = JSONObject.parseObject((String) ops.get("Process:"+hostId+":2021-05-18"),ProcessInfo.class);
+-            processList.add(host);
++        for(int i=10;i<12;i++) {
++            ArrayList<HostInfo> hostList = new ArrayList<>();//测试时System后面跟test1输出的某一个id
++            SystemInfo system = JSONObject.parseObject((String) ops.get("System:f3e2bf4740b846b789b8949608c8780d:2021-05-18 00:00:"+i+""), SystemInfo.class);
++//            System.out.println(system);
++            int count = 0;
++            for (String hostId : system.getHostIds()) {
++                HostInfo host = JSONObject.parseObject((String) ops.get("Host:" + hostId + ":2021-05-18 00:00:"+i+""), HostInfo.class);
++
++                System.out.println(host);
++                LoadState load = JSONObject.parseObject((String) ops.get("LoadState:"+host.getLoadId()+":2021-05-18 00:00:"+i+""),LoadState.class);
++                System.out.println(load);
++                CpuState cpu = JSONObject.parseObject((String) ops.get("CpuState:"+host.getCpuId()+":2021-05-18 00:00:"+i+""),CpuState.class);
++                System.out.println(cpu);
++                MemState mem = JSONObject.parseObject((String) ops.get("MemState:"+host.getMemId()+":2021-05-18 00:00:"+i+""),MemState.class);
++                System.out.println(mem);
++                DeskState desk = JSONObject.parseObject((String) ops.get("DeskState:"+host.getDeskId()+":2021-05-18 00:00:"+i+""),DeskState.class);
++                System.out.println(desk);
++                TcpState tcp = JSONObject.parseObject((String) ops.get("TcpState:"+host.getTcpId()+":2021-05-18 00:00:"+i+""),TcpState.class);
++                System.out.println(tcp);
++                NetioState netio = JSONObject.parseObject((String) ops.get("NetioState:"+host.getNetioId()+":2021-05-18 00:00:"+i+""),NetioState.class);
++                System.out.println(netio);
++                System.out.println();
++
++            }
++//            for (ProcessInfo process : processList) {
++//                if (process.getProcessState().equals("1")) {
++//                    count += 1;
++//                }
++//            }
++//            System.out.println(JSON.toJSONString(count) + "/" + JSON.toJSONString(processList.size()));
+         }
+-        for(ProcessInfo process:processList){
+-            if (process.getProcessState().equals("正在进行")){ count += 1; }
++
++    }
++
++    @Test
++    public void test3() throws ParserException {
++        ValueOperations ops = redisTemplate.opsForValue();
++
++        for(int i=10;i<20;i++) {
++            ArrayList<ProcessInfo> processList = new ArrayList<>();//测试时System后面跟test1输出的某一个id
++            SystemInfo system = JSONObject.parseObject((String) ops.get("System:f3e2bf4740b846b789b8949608c8780d:2021-05-18 00:00:" + i + ""), SystemInfo.class);
++            for(String processId:system.getProcessIds()){
++                processList.add(JSONObject.parseObject((String) ops.get("Process:"+processId+":2021-05-18 00:00:"+i),ProcessInfo.class));
++            }
++            System.out.println(processList);
+         }
+-       System.out.println(JSON.toJSONString(count)+"/"+JSON.toJSONString(processList.size()));
+ 
+     }
+ 
